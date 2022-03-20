@@ -150,6 +150,7 @@ namespace library
             D3D_FEATURE_LEVEL_11_0,
             D3D_FEATURE_LEVEL_11_1
         };
+
         UINT numFeatureLevels = ARRAYSIZE(levels);
         // This flag adds support for surfaces with a color-channel ordering different
         // from the API default. It is required for compatibility with Direct2D.
