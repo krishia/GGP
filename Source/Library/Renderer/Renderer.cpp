@@ -189,8 +189,6 @@ namespace library
         vp.TopLeftY = 0;
         m_immediateContext->RSSetViewports(1, &vp);
 
-
-
         ComPtr<ID3DBlob> pVSBlob = nullptr;
         hr = compileShaderFromFile(L"../Library/Shaders/Lab03.fxh", "VS", "vs_5_0", pVSBlob.GetAddressOf());
         if (FAILED(hr))
@@ -201,12 +199,9 @@ namespace library
         }
         hr = m_d3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, m_vertexShader.GetAddressOf());
         if (FAILED(hr))
-        {
-            
+        {   
             return hr;
         }
-
-
 
         D3D11_INPUT_ELEMENT_DESC aLayouts[] =
         {
@@ -228,8 +223,7 @@ namespace library
         hr = compileShaderFromFile(L"../Library/Shaders/Lab03.fxh", "PS", "ps_5_0", &pPSBlob);
         if (FAILED(hr))
         {
-            MessageBox(nullptr,
-                L"The p_FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+            MessageBox(nullptr, L"The p_FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
             return hr;
         }
 
