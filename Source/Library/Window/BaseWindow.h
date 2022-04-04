@@ -222,11 +222,11 @@ namespace library
 
         wc.lpfnWndProc = BaseWindow<DerivedType>::WindowProc;
         wc.hInstance = hInstance;
-        wc.lpszClassName = L"Lab2";
+        wc.lpszClassName = L"Lab3";
 
         RegisterClass(&wc);
 
-        m_hWnd = CreateWindow(L"Lab2", pszWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, this);
+        m_hWnd = CreateWindow(L"Lab3", pszWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, this);
 
         if (!m_hWnd)
             return E_FAIL;
