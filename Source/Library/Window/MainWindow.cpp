@@ -164,10 +164,8 @@ namespace library
         default:
             return DefWindowProc(m_hWnd, uMsg, wParam, lParam);
         }
-
-        
+  
         return S_OK;
-
 
     };
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
