@@ -27,7 +27,7 @@ namespace library
         , m_renderTargetView(nullptr)
         , m_depthStencil(nullptr)
         , m_depthStencilView(nullptr)
-        , m_view()
+        , m_camera(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f))
         , m_projection()
         , m_renderables()
         , m_vertexShaders()
@@ -59,10 +59,25 @@ namespace library
         HRESULT hr = S_OK;
 
         RECT rc;
+
         GetClientRect(hWnd, &rc);
         UINT width = (UINT(rc.right - rc.left));
         UINT height = (UINT(rc.bottom - rc.top));
         UINT createDeviceFlags = 0;
+        POINT p1, p2;
+        p1.x = rc.left;
+        p1.y = rc.top;
+        p2.x = rc.right;
+        p2.y = rc.bottom;
+
+        ClientToScreen(hWnd, &p1);
+        ClientToScreen(hWnd, &p2);
+
+        rc.left = p1.x;
+        rc.top = p1.y;
+        rc.right = p2.x;
+        rc.bottom = p2.y;
+        ClipCursor(&rc);
 #ifdef _DEBUG
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
@@ -235,10 +250,6 @@ namespace library
             renderableIter->second->Initialize(m_d3dDevice.Get(), m_immediateContext.Get());
         }
 
-        XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
-        XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-        XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-        m_view = XMMatrixLookAtLH(Eye, At, Up);
         m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, (float)(width) / (float)(height), 0.01f, 100.0f);
 
         return hr;
@@ -337,6 +348,19 @@ M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
 
         return S_OK;
     }
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Renderer::HandleInput
+      Summary:  Add the pixel shader into the renderer and initialize it
+      Args:     const DirectionsInput& directions
+                  Data structure containing keyboard input data
+                const MouseRelativeMovement& mouseRelativeMovement
+                  Data structure containing mouse relative input data
+      Modifies: [m_camera].
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    void Renderer::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
+    {
+        m_camera.HandleInput(directions, mouseRelativeMovement, deltaTime);
+    }
 /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
   Method:   Renderer::Update
   Summary:  Update the renderables each frame
@@ -348,10 +372,10 @@ M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
 --------------------------------------------------------------------*/
     void Renderer::Update(_In_ FLOAT deltaTime)
     {
-        std::unordered_map<PCWSTR, std::shared_ptr<Renderable>>::iterator renderable;
-        for (renderable = m_renderables.begin(); renderable != m_renderables.end(); ++renderable)
+        std::unordered_map<PCWSTR, std::shared_ptr<Renderable>>::iterator renderableIter;
+        for (renderableIter = m_renderables.begin(); renderableIter != m_renderables.end(); ++renderableIter)
         {
-            renderable->second->Update(deltaTime);
+            renderableIter->second->Update(deltaTime);
         }
     }
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -377,7 +401,7 @@ M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
             m_immediateContext->IASetInputLayout(renderable->GetVertexLayout().Get());
             ConstantBuffer cb = {
                 .World = XMMatrixTranspose(renderable->GetWorldMatrix()),
-                .View = XMMatrixTranspose(m_view),
+                .View = XMMatrixTranspose(m_camera.GetView()),
                 .Projection = XMMatrixTranspose(m_projection)
             };
             m_immediateContext->UpdateSubresource(renderable->GetConstantBuffer().Get(), 0, NULL, &cb, 0, 0);

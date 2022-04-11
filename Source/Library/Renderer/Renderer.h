@@ -13,6 +13,7 @@
 
 #include "Common.h"
 
+#include "Camera/Camera.h"
 #include "Renderer/DataTypes.h"
 #include "Renderer/Renderable.h"
 #include "Shader/PixelShader.h"
@@ -67,6 +68,7 @@ namespace library
 
         void Update(_In_ FLOAT deltaTime);
         void Render();
+        void HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime);
 
         HRESULT SetVertexShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszVertexShaderName);
         HRESULT SetPixelShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszPixelShaderName);
@@ -85,7 +87,7 @@ namespace library
         ComPtr<ID3D11RenderTargetView> m_renderTargetView;
         ComPtr<ID3D11Texture2D> m_depthStencil;
         ComPtr<ID3D11DepthStencilView> m_depthStencilView;
-        XMMATRIX m_view;
+        Camera m_camera;
         XMMATRIX m_projection;
 
         std::unordered_map<PCWSTR, std::shared_ptr<Renderable>> m_renderables;

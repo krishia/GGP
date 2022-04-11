@@ -67,12 +67,12 @@ namespace library
 	--------------------------------------------------------------------*/
 	INT Game::Run()
 	{		
-		LARGE_INTEGER LastTime;
-		LARGE_INTEGER CurrentTime;
-		LARGE_INTEGER Frequency;
+		LARGE_INTEGER startTime;
+		LARGE_INTEGER endTime;
+		LARGE_INTEGER frequency;
 		FLOAT deltaTime;
-		QueryPerformanceFrequency(&Frequency);
-		QueryPerformanceCounter(&LastTime);
+		QueryPerformanceFrequency(&frequency);
+		QueryPerformanceCounter(&startTime);
 
 		MSG msg = { 0 };
 		while (WM_QUIT != msg.message)
@@ -84,9 +84,11 @@ namespace library
 			}
 			else
 			{
-				QueryPerformanceCounter(&CurrentTime);
-				deltaTime = (float)(CurrentTime.QuadPart - LastTime.QuadPart);
-				deltaTime /= (float)(Frequency.QuadPart);
+				QueryPerformanceCounter(&endTime);
+				deltaTime = static_cast<FLOAT>(endTime.QuadPart - startTime.QuadPart);
+				deltaTime /= static_cast<FLOAT>(frequency.QuadPart);
+				m_renderer->HandleInput(m_mainWindow->GetDirections(),m_mainWindow->GetMouseRelativeMovement(), deltaTime);
+				m_mainWindow->ResetMouseMovement();
 				m_renderer->Update(deltaTime);
 				m_renderer->Render();
 			}

@@ -25,6 +25,9 @@
     <Filter Include="shader">
       <UniqueIdentifier>{976cc591-de4c-46b9-aec7-de16f2629e4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{b4bc32ea-b34d-4a72-887d-9788a1e43059}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">
@@ -60,6 +63,9 @@
     <ClInclude Include="Shader\PixelShader.h">
       <Filter>shader</Filter>
     </ClInclude>
+    <ClInclude Include="Camera\Camera.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game\Game.cpp">
@@ -82,6 +88,9 @@
     </ClCompile>
     <ClCompile Include="Shader\PixelShader.cpp">
       <Filter>shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera\Camera.cpp">
+      <Filter>Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
