@@ -66,10 +66,13 @@ namespace library
 	  TODO: Game::Run definition (remove the comment)
 	--------------------------------------------------------------------*/
 	INT Game::Run()
-	{
-		
-
-		//ShowWindow(m_mainWindow->GetWindow(), WS_OVERLAPPEDWINDOW);
+	{		
+		LARGE_INTEGER LastTime;
+		LARGE_INTEGER CurrentTime;
+		LARGE_INTEGER Frequency;
+		FLOAT deltaTime;
+		QueryPerformanceFrequency(&Frequency);
+		QueryPerformanceCounter(&LastTime);
 
 		MSG msg = { 0 };
 		while (WM_QUIT != msg.message)
@@ -81,6 +84,10 @@ namespace library
 			}
 			else
 			{
+				QueryPerformanceCounter(&CurrentTime);
+				deltaTime = (float)(CurrentTime.QuadPart - LastTime.QuadPart);
+				deltaTime /= (float)(Frequency.QuadPart);
+				m_renderer->Update(deltaTime);
 				m_renderer->Render();
 			}
 		}
@@ -100,5 +107,31 @@ namespace library
 	PCWSTR Game::GetGameName() const
 	{
 		return m_pszGameName;
+	}
+	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+	Method:   Game::GetWindow
+	Summary:  Returns the main window
+	Returns:  std::unique_ptr<MainWindow>&
+				The main window
+  M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+  /*--------------------------------------------------------------------
+	TODO: Game::GetWindow definition (remove the comment)
+  --------------------------------------------------------------------*/
+	std::unique_ptr<MainWindow>& Game::GetWindow() 
+	{
+		return m_mainWindow;
+	}
+  /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+	Method:   Game::GetRenderer
+	Summary:  Returns the renderer
+	Returns:  std::unique_ptr<Renderer>&
+				The renderer
+  M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+  /*--------------------------------------------------------------------
+	TODO: Game::GetRenderer definition (remove the comment)
+  --------------------------------------------------------------------*/
+	std::unique_ptr<Renderer>& Game::GetRenderer()
+	{
+		return m_renderer;
 	}
 }

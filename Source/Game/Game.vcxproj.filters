@@ -13,10 +13,55 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{19ac062c-19c1-4590-af7c-a059c276a47e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Cube">
+      <UniqueIdentifier>{96e0a21e-a762-4471-98e5-6cb47e41c4e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Cube\BaseCube.cpp">
+      <Filter>Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="Cube\MainCube.cpp">
+      <Filter>Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="Cube\RotateCube1.cpp">
+      <Filter>Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="Cube\atomic.cpp">
+      <Filter>Cube</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\PS.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\VS.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Shaders.fxh">
+      <Filter>Shader</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Cube\BaseCube.h">
+      <Filter>Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube\MainCube.h">
+      <Filter>Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube\RotateCube1.h">
+      <Filter>Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube\atomic.h">
+      <Filter>Cube</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
