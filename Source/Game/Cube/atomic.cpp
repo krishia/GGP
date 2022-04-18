@@ -1,5 +1,10 @@
 #include "Cube/atomic.h"
 
+atomic::atomic(const std::filesystem::path& textureFilePath)
+	: BaseCube(textureFilePath)
+{
+
+}
 void atomic::Update(_In_ FLOAT deltaTime)
 {
 	XMMATRIX spin = XMMatrixRotationX(-deltaTime);

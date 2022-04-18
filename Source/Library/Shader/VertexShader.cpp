@@ -39,32 +39,33 @@ namespace library
     HRESULT VertexShader::Initialize(_In_ ID3D11Device* pDevice)
     {
         HRESULT hr = S_OK;
+
         ComPtr<ID3DBlob> pVSBlob = nullptr;
         hr = compile(pVSBlob.GetAddressOf());
         if (FAILED(hr))
         {
-            MessageBox(nullptr,
-                L"The v_FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-            return hr;
+            return E_FAIL;
         }
+
         hr = pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, m_vertexShader.GetAddressOf());
         if (FAILED(hr))
         {
-            return hr;
+            return E_FAIL;
         }
 
         D3D11_INPUT_ELEMENT_DESC aLayouts[] =
         {
-            { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
         };
         UINT uNumElements = ARRAYSIZE(aLayouts);
 
         hr = pDevice->CreateInputLayout(aLayouts, uNumElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), m_vertexLayout.GetAddressOf());
-
         if (FAILED(hr))
         {
-            return hr;
+            return E_FAIL;
         }
+
         return hr;
     }
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M

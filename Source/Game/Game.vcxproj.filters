@@ -36,6 +36,9 @@
     <ClCompile Include="Cube\atomic.cpp">
       <Filter>Cube</Filter>
     </ClCompile>
+    <ClCompile Include="Cube\Cube.cpp">
+      <Filter>Cube</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\PS.hlsl">
@@ -61,6 +64,9 @@
       <Filter>Cube</Filter>
     </ClInclude>
     <ClInclude Include="Cube\atomic.h">
+      <Filter>Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube\Cube.h">
       <Filter>Cube</Filter>
     </ClInclude>
   </ItemGroup>

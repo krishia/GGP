@@ -66,13 +66,15 @@ namespace library
 	  TODO: Game::Run definition (remove the comment)
 	--------------------------------------------------------------------*/
 	INT Game::Run()
-	{		
-		LARGE_INTEGER startTime;
-		LARGE_INTEGER endTime;
-		LARGE_INTEGER frequency;
+	{
+		LARGE_INTEGER LastTime;
+		LARGE_INTEGER CurrentTime;
+		LARGE_INTEGER Frequency;
+
 		FLOAT deltaTime;
-		QueryPerformanceFrequency(&frequency);
-		QueryPerformanceCounter(&startTime);
+
+		QueryPerformanceFrequency(&Frequency);
+		QueryPerformanceCounter(&LastTime);
 
 		MSG msg = { 0 };
 		while (WM_QUIT != msg.message)
@@ -84,15 +86,20 @@ namespace library
 			}
 			else
 			{
-				QueryPerformanceCounter(&endTime);
-				deltaTime = static_cast<FLOAT>(endTime.QuadPart - startTime.QuadPart);
-				deltaTime /= static_cast<FLOAT>(frequency.QuadPart);
-				m_renderer->HandleInput(m_mainWindow->GetDirections(),m_mainWindow->GetMouseRelativeMovement(), deltaTime);
+				QueryPerformanceCounter(&CurrentTime);
+
+				deltaTime = static_cast<FLOAT>(CurrentTime.QuadPart - LastTime.QuadPart);
+				deltaTime /= static_cast<FLOAT>(Frequency.QuadPart);
+				LastTime = CurrentTime;
+
+				m_renderer->HandleInput(m_mainWindow->GetDirections(), m_mainWindow->GetMouseRelativeMovement(), deltaTime);
 				m_mainWindow->ResetMouseMovement();
+
 				m_renderer->Update(deltaTime);
 				m_renderer->Render();
 			}
 		}
+
 		return static_cast<INT>(msg.wParam);
 	}
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M

@@ -38,10 +38,10 @@ namespace library
     {
     public:
         MainWindow() = default;
-        MainWindow(const MainWindow & other) = delete;
-        MainWindow(MainWindow && other) = delete;
-        MainWindow& operator=(const MainWindow & other) = delete;
-        MainWindow& operator=(MainWindow && other) = delete;
+        MainWindow(const MainWindow& other) = delete;
+        MainWindow(MainWindow&& other) = delete;
+        MainWindow& operator=(const MainWindow& other) = delete;
+        MainWindow& operator=(MainWindow&& other) = delete;
         virtual ~MainWindow() = default;
 
         HRESULT Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow, _In_ PCWSTR pszWindowName) override;
@@ -57,4 +57,5 @@ namespace library
         MouseRelativeMovement m_mouseRelativeMovement;
     };
 }
+
 

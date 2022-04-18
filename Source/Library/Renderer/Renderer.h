@@ -1,13 +1,10 @@
 /*+===================================================================
   File:      RENDERER.H
-
   Summary:   Renderer header file contains declarations of Renderer
              class used for the lab samples of Game Graphics
              Programming course.
-
   Classes: Renderer
-
-  © 2022 Kyung Hee University
+  � 2022 Kyung Hee University
 ===================================================================+*/
 #pragma once
 
@@ -20,37 +17,37 @@
 #include "Shader/VertexShader.h"
 #include "Window/MainWindow.h"
 
-
 namespace library
 {
     /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
-       Class:    Renderer
-       Summary:  Renderer initializes Direct3D, and renders renderable
-                 data onto the screen
-       Methods:  Initialize
-                   Creates Direct3D device and swap chain
-                 AddRenderable
-                   Add a renderable object
-                 AddVertexShader
-                   Add a vertex shader object
-                 AddPixelShader
-                   Add a pixel shader object
-                 Update
-                   Update the renderables each frame
-                 Render
-                   Renders the frame
-                 SetVertexShaderOfRenderable
-                   Set vertex shader to the renderable
-                 SetPixelShaderOfRenderable
-                   Set pixel shader to the renderable
-                 GetDriverType
-                   Returns the Direct3D driver type
-                 Renderer
-                   Constructor.
-                 ~Renderer
-                   Destructor.
-     C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
-
+      Class:    Renderer
+      Summary:  Renderer initializes Direct3D, and renders renderable
+                data onto the screen
+      Methods:  Initialize
+                  Creates Direct3D device and swap chain
+                AddRenderable
+                  Add a renderable object and initialize the object
+                AddVertexShader
+                  Add the vertex shader into the renderer
+                AddPixelShader
+                  Add the pixel shader into the renderer
+                HandleInput
+                  Handles the keyboard / mouse input
+                Update
+                  Update the renderables each frame
+                Render
+                  Renders the frame
+                SetVertexShaderOfRenderable
+                  Sets the vertex shader for a renderable
+                SetPixelShaderOfRenderable
+                  Sets the pixel shader for a renderable
+                GetDriverType
+                  Returns the Direct3D driver type
+                Renderer
+                  Constructor.
+                ~Renderer
+                  Destructor.
+    C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
     class Renderer final
     {
     public:
@@ -66,9 +63,9 @@ namespace library
         HRESULT AddVertexShader(_In_ PCWSTR pszVertexShaderName, _In_ const std::shared_ptr<VertexShader>& vertexShader);
         HRESULT AddPixelShader(_In_ PCWSTR pszPixelShaderName, _In_ const std::shared_ptr<PixelShader>& pixelShader);
 
+        void HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime);
         void Update(_In_ FLOAT deltaTime);
         void Render();
-        void HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime);
 
         HRESULT SetVertexShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszVertexShaderName);
         HRESULT SetPixelShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszPixelShaderName);
@@ -87,11 +84,13 @@ namespace library
         ComPtr<ID3D11RenderTargetView> m_renderTargetView;
         ComPtr<ID3D11Texture2D> m_depthStencil;
         ComPtr<ID3D11DepthStencilView> m_depthStencilView;
+        ComPtr<ID3D11Buffer> m_cbChangeOnResize;
+        BYTE m_padding[8];
         Camera m_camera;
         XMMATRIX m_projection;
 
-        std::unordered_map<PCWSTR, std::shared_ptr<Renderable>> m_renderables;
-        std::unordered_map<PCWSTR, std::shared_ptr<VertexShader>> m_vertexShaders;
-        std::unordered_map<PCWSTR, std::shared_ptr<PixelShader>> m_pixelShaders;
+        std::unordered_map<std::wstring, std::shared_ptr<Renderable>> m_renderables;
+        std::unordered_map<std::wstring, std::shared_ptr<VertexShader>> m_vertexShaders;
+        std::unordered_map<std::wstring, std::shared_ptr<PixelShader>> m_pixelShaders;
     };
 }

@@ -12,12 +12,14 @@
 
 #include "Common.h"
 
+#include <cstdio>
+#include <filesystem>
 #include <memory>
+#include <source_location>
 
+#include "Cube/Cube.h"
 #include "Game/Game.h"
-#include "Cube/MainCube.h"
 #include "Cube/RotateCube1.h"
-#include "Cube//atomic.h"
 
 /*F+F+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   Function: wWinMain
@@ -49,7 +51,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    std::unique_ptr<library::Game> game = std::make_unique<library::Game>(L"Game Graphics Programming Lab 04: 3D Spaces and Transformations");
+    std::unique_ptr<library::Game> game = std::make_unique<library::Game>(L"Game Graphics Programming 05: Texture Mapping and Constant Buffers");
 
     std::shared_ptr<library::VertexShader> vertexShader = std::make_shared<library::VertexShader>(L"Shaders/Shaders.fxh", "VS", "vs_5_0");
     if (FAILED(game->GetRenderer()->AddVertexShader(L"MainShader", vertexShader)))
@@ -62,24 +64,38 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    std::shared_ptr<Cube> cube = std::make_shared<Cube>("seafloor.dds");
+    if (FAILED(game->GetRenderer()->AddRenderable(L"Cube", cube)))
+    {
+        return 0;
+    }
 
-    /*--------------------------------------------------------------------
-      TODO: Add your cubes and set their shaders (remove the comment)
-    --------------------------------------------------------------------*/
-    std::shared_ptr<MainCube> Maincube = std::make_shared<MainCube>();
-    game->GetRenderer()->AddRenderable(L"MainCube", Maincube);
-    game->GetRenderer()->SetVertexShaderOfRenderable(L"MainCube", L"MainShader");
-    game->GetRenderer()->SetPixelShaderOfRenderable(L"MainCube", L"MainShader");
+    if (FAILED(game->GetRenderer()->SetVertexShaderOfRenderable(L"Cube", L"MainShader")))
+    {
+        return 0;
+    }
 
-    std::shared_ptr<RotateCube1> rotatecube1 = std::make_shared<RotateCube1>();
-    game->GetRenderer()->AddRenderable(L"RotateCube1", rotatecube1);
-    game->GetRenderer()->SetVertexShaderOfRenderable(L"RotateCube1", L"MainShader");
-    game->GetRenderer()->SetPixelShaderOfRenderable(L"RotateCube1", L"MainShader");
+    if (FAILED(game->GetRenderer()->SetPixelShaderOfRenderable(L"Cube", L"MainShader")))
+    {
+        return 0;
+    }
 
-    std::shared_ptr<atomic> atomcube = std::make_shared<atomic>();
-    game->GetRenderer()->AddRenderable(L"atomic", atomcube);
-    game->GetRenderer()->SetVertexShaderOfRenderable(L"atomic", L"MainShader");
-    game->GetRenderer()->SetPixelShaderOfRenderable(L"atomic", L"MainShader");
+    std::shared_ptr<RotateCube1> rotCube = std::make_shared<RotateCube1>("rug.dds");
+    if (FAILED(game->GetRenderer()->AddRenderable(L"RotateCube1", rotCube)))
+    {
+        return 0;
+    }
+
+    if (FAILED(game->GetRenderer()->SetVertexShaderOfRenderable(L"RotateCube1", L"MainShader")))
+    {
+        return 0;
+    }
+
+    if (FAILED(game->GetRenderer()->SetPixelShaderOfRenderable(L"RotateCube1", L"MainShader")))
+    {
+        return 0;
+    }
+
     if (FAILED(game->Initialize(hInstance, nCmdShow)))
     {
         return 0;
