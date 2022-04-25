@@ -15,6 +15,11 @@ BaseCube::BaseCube(const std::filesystem::path& textureFilePath) : Renderable(te
 {
     
 }
+
+BaseCube::BaseCube(_In_ const XMFLOAT4& outputColor)
+    : Renderable(outputColor)
+{
+}
 /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
   Method:   BaseCube::Initialize
 

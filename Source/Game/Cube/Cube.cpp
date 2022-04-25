@@ -15,6 +15,18 @@ Cube::Cube(const std::filesystem::path& textureFilePath) : BaseCube(textureFileP
 {
 
 }
+
+/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+  Method:   Cube::Cube
+  Summary:  Constructor
+  Args:     const XMFLOAT4& outputColor
+              Default color of the cube
+M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+Cube::Cube(_In_ const XMFLOAT4& outputColor)
+    : BaseCube(outputColor)
+{
+}
+
 /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
   Method:   Cube::Update
 

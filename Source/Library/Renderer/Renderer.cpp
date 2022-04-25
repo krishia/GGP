@@ -24,12 +24,14 @@ namespace library
         , m_renderTargetView(nullptr)
         , m_depthStencil(nullptr)
         , m_depthStencilView(nullptr)
-        , m_padding()
-        , m_camera(Camera(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f)))
-        , m_projection()
-        , m_renderables()
-        , m_vertexShaders()
-        , m_pixelShaders()
+        , m_cbChangeOnResize(nullptr)
+        , m_cbLights(nullptr)
+        , m_camera(Camera(XMVectorSet(0.0f, 1.0f, -10.0f, 0.0f)))
+        , m_projection(XMMatrixIdentity())
+        , m_renderables(std::unordered_map<std::wstring, std::shared_ptr<Renderable>>())
+        , m_aPointLights{ std::shared_ptr<PointLight>() }
+        , m_vertexShaders(std::unordered_map<std::wstring, std::shared_ptr<VertexShader>>())
+        , m_pixelShaders(std::unordered_map<std::wstring, std::shared_ptr<PixelShader>>())
     {
 
     }
@@ -42,7 +44,7 @@ namespace library
       Modifies: [m_d3dDevice, m_featureLevel, m_immediateContext,
                  m_d3dDevice1, m_immediateContext1, m_swapChain1,
                  m_swapChain, m_renderTargetView, m_cbChangeOnResize,
-                 m_projection, m_camera, m_vertexShaders,
+                 m_projection, m_cbLights, m_camera, m_vertexShaders,
                  m_pixelShaders, m_renderables].
       Returns:  HRESULT
                   Status code
@@ -144,20 +146,22 @@ namespace library
         ComPtr<IDXGIFactory2> dxgiFactory2 = nullptr;
         if (SUCCEEDED(dxgiFactory.As(&dxgiFactory2)))
         {
+
             if (SUCCEEDED(m_d3dDevice.As(&m_d3dDevice1)))
             {
                 m_immediateContext.As(&m_immediateContext1);
             }
 
-            DXGI_SWAP_CHAIN_DESC1 sd = {};         
-            sd.Width = uWidth;
-            sd.Height = uHeight;
-            sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            sd.SampleDesc.Count = 1u;
-            sd.SampleDesc.Quality = 0u;
-            sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-            sd.BufferCount = 1u;
-            
+            DXGI_SWAP_CHAIN_DESC1 sd =
+            {
+                .Width = uWidth,
+                .Height = uHeight,
+                .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+                .SampleDesc = {.Count = 1u,
+                               .Quality = 0u},
+                .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+                .BufferCount = 1u
+            };
 
             hr = dxgiFactory2->CreateSwapChainForHwnd(m_d3dDevice.Get(), hWnd, &sd, nullptr, nullptr, &m_swapChain1);
             if (SUCCEEDED(hr))
@@ -167,20 +171,20 @@ namespace library
         }
         else
         {
-            DXGI_SWAP_CHAIN_DESC sd = {};
-            
-            sd.BufferDesc.Width = uWidth;
-            sd.BufferDesc.Height = uHeight;
-            sd.BufferDesc.RefreshRate.Numerator = 60u;
-            sd.BufferDesc.RefreshRate.Denominator = 1u;
-            sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            sd.SampleDesc.Count = 1u;
-            sd.SampleDesc.Quality = 0u;
-            sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-            sd.BufferCount = 1u;
-            sd.OutputWindow = hWnd;
-            sd.Windowed = TRUE;
-            
+            DXGI_SWAP_CHAIN_DESC sd =
+            {
+                .BufferDesc = {.Width = uWidth,
+                               .Height = uHeight,
+                               .RefreshRate = {.Numerator = 60u,
+                                               .Denominator = 1u},
+                               .Format = DXGI_FORMAT_R8G8B8A8_UNORM},
+                .SampleDesc = {.Count = 1u,
+                               .Quality = 0u},
+                .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+                .BufferCount = 1u,
+                .OutputWindow = hWnd,
+                .Windowed = TRUE
+            };
 
             hr = dxgiFactory->CreateSwapChain(m_d3dDevice.Get(), &sd, &m_swapChain);
         }
@@ -191,6 +195,7 @@ namespace library
         {
             return E_FAIL;
         }
+
 
         ComPtr<ID3D11Texture2D> pBackBuffer = nullptr;
         hr = m_swapChain->GetBuffer(0u, IID_PPV_ARGS(&pBackBuffer));
@@ -205,33 +210,32 @@ namespace library
             return E_FAIL;
         }
 
-
-        D3D11_TEXTURE2D_DESC descDepth = {};      
-        descDepth.Width = uWidth;
-        descDepth.Height = uHeight;
-        descDepth.MipLevels = 1u;
-        descDepth.ArraySize = 1u;
-        descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        descDepth.SampleDesc.Count = 1u;
-        descDepth.SampleDesc.Quality = 0u;
-        descDepth.Usage = D3D11_USAGE_DEFAULT;
-        descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-        descDepth.CPUAccessFlags = 0u;
-        descDepth.MiscFlags = 0u;
-        
+        D3D11_TEXTURE2D_DESC descDepth =
+        {
+            .Width = uWidth,
+            .Height = uHeight,
+            .MipLevels = 1u,
+            .ArraySize = 1u,
+            .Format = DXGI_FORMAT_D24_UNORM_S8_UINT,
+            .SampleDesc = {.Count = 1u,
+                           .Quality = 0u},
+            .Usage = D3D11_USAGE_DEFAULT,
+            .BindFlags = D3D11_BIND_DEPTH_STENCIL,
+            .CPUAccessFlags = 0u,
+            .MiscFlags = 0u
+        };
         hr = m_d3dDevice->CreateTexture2D(&descDepth, nullptr, m_depthStencil.GetAddressOf());
         if (FAILED(hr))
         {
             return E_FAIL;
         }
 
-
-        D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
-        
-        descDSV.Format = descDepth.Format;
-        descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-        descDSV.Texture2D.MipSlice = 0u;
-        
+        D3D11_DEPTH_STENCIL_VIEW_DESC descDSV =
+        {
+            .Format = descDepth.Format,
+            .ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
+            .Texture2D = {.MipSlice = 0u}
+        };
         hr = m_d3dDevice->CreateDepthStencilView(m_depthStencil.Get(), &descDSV, m_depthStencilView.GetAddressOf());
         if (FAILED(hr))
         {
@@ -240,22 +244,25 @@ namespace library
 
         m_immediateContext->OMSetRenderTargets(1u, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 
-        D3D11_VIEWPORT vp = {};
-        
-        vp.TopLeftX = 0.0f;
-        vp.TopLeftY = 0.0f;
-        vp.Width = static_cast<FLOAT>(uWidth);
-        vp.Height = static_cast<FLOAT>(uHeight);
-        vp.MinDepth = 0.0f;
-        vp.MaxDepth = 1.0f;
-        
+
+        D3D11_VIEWPORT vp =
+        {
+            .TopLeftX = 0.0f,
+            .TopLeftY = 0.0f,
+            .Width = static_cast<FLOAT>(uWidth),
+            .Height = static_cast<FLOAT>(uHeight),
+            .MinDepth = 0.0f,
+            .MaxDepth = 1.0f
+        };
         m_immediateContext->RSSetViewports(1u, &vp);
+
 
         std::unordered_map<std::wstring, std::shared_ptr<VertexShader>>::iterator vertexShader;
         for (vertexShader = m_vertexShaders.begin(); vertexShader != m_vertexShaders.end(); ++vertexShader)
         {
             vertexShader->second->Initialize(m_d3dDevice.Get());
         }
+
 
         std::unordered_map<std::wstring, std::shared_ptr<PixelShader>>::iterator pixelShader;
         for (pixelShader = m_pixelShaders.begin(); pixelShader != m_pixelShaders.end(); ++pixelShader)
@@ -283,23 +290,36 @@ namespace library
         }
 
         m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, static_cast<FLOAT>(uWidth) / static_cast<FLOAT>(uHeight), 0.01f, 100.0f);
-
         CBChangeOnResize cbChangeOnResize =
         {
             .Projection = XMMatrixTranspose(m_projection)
         };
         m_immediateContext->UpdateSubresource(m_cbChangeOnResize.Get(), 0u, nullptr, &cbChangeOnResize, 0u, 0u);
 
+        m_camera.Initialize(m_d3dDevice.Get());
+
+        D3D11_BUFFER_DESC bdLight =
+        {
+            .ByteWidth = sizeof(CBLights),
+            .Usage = D3D11_USAGE_DEFAULT,
+            .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+            .CPUAccessFlags = 0u
+        };
+        if (FAILED(m_d3dDevice->CreateBuffer(&bdLight, nullptr, m_cbLights.GetAddressOf())))
+        {
+
+        }
+
         return hr;
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Renderer::AddRenderable
-      Summary:  Add a renderable object and initialize the object
+      Summary:  Add a renderable object
       Args:     PCWSTR pszRenderableName
                   Key of the renderable object
                 const std::shared_ptr<Renderable>& renderable
-                  Unique pointer to the renderable object
+                  Shared pointer to the renderable object
       Modifies: [m_renderables].
       Returns:  HRESULT
                   Status code.
@@ -312,6 +332,29 @@ namespace library
         }
 
         m_renderables.insert(std::make_pair(pszRenderableName, renderable));
+
+        return S_OK;
+    }
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Renderer::AddPointLight
+      Summary:  Add a point light
+      Args:     size_t index
+                  Index of the point light
+                const std::shared_ptr<PointLight>& pointLight
+                  Shared pointer to the point light object
+      Modifies: [m_aPointLights].
+      Returns:  HRESULT
+                  Status code.
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    HRESULT Renderer::AddPointLight(_In_ size_t index, _In_ const std::shared_ptr<PointLight>& pPointLight)
+    {
+        if (index >= NUM_LIGHTS)
+        {
+            return E_FAIL;
+        }
+
+        m_aPointLights[index] = pPointLight;
 
         return S_OK;
     }
@@ -389,6 +432,11 @@ namespace library
         {
             renderable->second->Update(deltaTime);
         }
+
+        for (UINT i = 0u; i < NUM_LIGHTS; ++i)
+        {
+            m_aPointLights[i]->Update(deltaTime);
+        }
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -398,47 +446,43 @@ namespace library
     void Renderer::Render()
     {
         m_immediateContext->ClearRenderTargetView(m_renderTargetView.Get(), Colors::MidnightBlue);
-
-
         m_immediateContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 
-        D3D11_BUFFER_DESC bd = {};
-        
-        bd.ByteWidth = sizeof(CBChangeOnCameraMovement);
-        bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        bd.CPUAccessFlags = 0u;
-        
-        if (FAILED(m_d3dDevice->CreateBuffer(&bd, nullptr, m_camera.GetConstantBuffer().GetAddressOf())))
-        {
-
-        }
         CBChangeOnCameraMovement cbChangeOnCameraMovement =
         {
-            .View = XMMatrixTranspose(m_camera.GetView())
+            .View = XMMatrixTranspose(m_camera.GetView()),
         };
+        XMStoreFloat4(&cbChangeOnCameraMovement.CameraPosition, m_camera.GetEye());
         m_immediateContext->UpdateSubresource(m_camera.GetConstantBuffer().Get(), 0u, nullptr, &cbChangeOnCameraMovement, 0u, 0u);
 
+        CBLights cbLights = {};
+        for (UINT i = 0u; i < NUM_LIGHTS; ++i)
+        {
+            cbLights.LightPositions[i] = m_aPointLights[i]->GetPosition();
+            cbLights.LightColors[i] = m_aPointLights[i]->GetColor();
+        }
+        m_immediateContext->UpdateSubresource(m_cbLights.Get(), 0u, nullptr, &cbLights, 0u, 0u);
 
         std::unordered_map<std::wstring, std::shared_ptr<Renderable>>::iterator renderable;
         for (renderable = m_renderables.begin(); renderable != m_renderables.end(); ++renderable)
         {
-            D3D11_BUFFER_DESC bd = {};
-            
-            bd.ByteWidth = sizeof(CBChangesEveryFrame);
-            bd.Usage = D3D11_USAGE_DEFAULT;
-            bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-            bd.CPUAccessFlags = 0u;
-            
-            if (FAILED(m_d3dDevice->CreateBuffer(&bd, nullptr, renderable->second->GetConstantBuffer().GetAddressOf())))
-            {
 
-            }
+            D3D11_BUFFER_DESC bd =
+            {
+                .ByteWidth = sizeof(CBChangesEveryFrame),
+                .Usage = D3D11_USAGE_DEFAULT,
+                .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+                .CPUAccessFlags = 0u
+            };
+            m_d3dDevice->CreateBuffer(&bd, nullptr, renderable->second->GetConstantBuffer().GetAddressOf());
+
             CBChangesEveryFrame cbChangesEveryFrame =
             {
-                .World = XMMatrixTranspose(renderable->second->GetWorldMatrix())
+                .World = XMMatrixTranspose(renderable->second->GetWorldMatrix()),
+                .OutputColor = renderable->second->GetOutputColor()
             };
             m_immediateContext->UpdateSubresource(renderable->second->GetConstantBuffer().Get(), 0u, nullptr, &cbChangesEveryFrame, 0u, 0u);
+
             UINT uStride = sizeof(SimpleVertex);
             UINT uOffset = 0u;
             m_immediateContext->IASetVertexBuffers(0u, 1u, renderable->second->GetVertexBuffer().GetAddressOf(), &uStride, &uOffset);
@@ -450,11 +494,18 @@ namespace library
             m_immediateContext->VSSetConstantBuffers(1u, 1u, m_cbChangeOnResize.GetAddressOf());
             m_immediateContext->VSSetConstantBuffers(2u, 1u, renderable->second->GetConstantBuffer().GetAddressOf());
             m_immediateContext->PSSetShader(renderable->second->GetPixelShader().Get(), nullptr, 0u);
+            m_immediateContext->PSSetConstantBuffers(0u, 1u, m_camera.GetConstantBuffer().GetAddressOf());
             m_immediateContext->PSSetConstantBuffers(2u, 1u, renderable->second->GetConstantBuffer().GetAddressOf());
-            m_immediateContext->PSSetShaderResources(0u, 1u, renderable->second->GetTextureResourceView().GetAddressOf());
-            m_immediateContext->PSSetSamplers(0u, 1u, renderable->second->GetSamplerState().GetAddressOf());
+            m_immediateContext->PSSetConstantBuffers(3u, 1u, m_cbLights.GetAddressOf());
+            if (renderable->second->HasTexture())
+            {
+                m_immediateContext->PSSetShaderResources(0u, 1u, renderable->second->GetTextureResourceView().GetAddressOf());
+                m_immediateContext->PSSetSamplers(0u, 1u, renderable->second->GetSamplerState().GetAddressOf());
+            }
+
             m_immediateContext->DrawIndexed(renderable->second->GetNumIndices(), 0u, 0);
         }
+
         m_swapChain->Present(0u, 0u);
     }
 

@@ -10,19 +10,15 @@ namespace library
                  m_padding, m_cameraForward, m_cameraRight, m_cameraUp,
                  m_eye, m_at, m_up, m_rotation, m_view].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Camera::Camera definition (remove the comment)
-    --------------------------------------------------------------------*/
     Camera::Camera(_In_ const XMVECTOR& position)
-
-        :m_cbChangeOnCameraMovement(nullptr)
+        : m_cbChangeOnCameraMovement(nullptr)
         , m_yaw(0.0f)
         , m_pitch(0.0f)
         , m_moveLeftRight(0.0f)
         , m_moveBackForward(0.0f)
         , m_moveUpDown(0.0f)
-        , m_travelSpeed(0.001f)
-        , m_rotationSpeed(0.001f)
+        , m_travelSpeed(10.0f)
+        , m_rotationSpeed(5.0f)
         , m_padding()
         , m_cameraForward(DEFAULT_FORWARD)
         , m_cameraRight(DEFAULT_RIGHT)
@@ -31,72 +27,66 @@ namespace library
         , m_at(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f))
         , m_up(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f))
         , m_rotation()
-        , m_view(XMMatrixIdentity())
+        , m_view(XMMatrixLookAtLH(m_eye, m_at, m_up))
     {
-
+        // empty
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::GetEye
       Summary:  Returns the eye vector
       Returns:  const XMVECTOR&
                   The eye vector
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Camera::GetEye definition (remove the comment)
-    --------------------------------------------------------------------*/
     const XMVECTOR& Camera::GetEye() const
     {
         return m_eye;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::GetAt
       Summary:  Returns the at vector
       Returns:  const XMVECTOR&
                   The at vector
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Camera::GetAt definition (remove the comment)
-    --------------------------------------------------------------------*/
     const XMVECTOR& Camera::GetAt() const
     {
         return m_at;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::GetUp
       Summary:  Returns the up vector
       Returns:  const XMVECTOR&
                   The up vector
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Camera::GetUp definition (remove the comment)
-    --------------------------------------------------------------------*/
     const XMVECTOR& Camera::GetUp() const
     {
         return m_up;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::GetView
       Summary:  Returns the view matrix
       Returns:  const XMMATRIX&
                   The view matrix
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Camera::GetView definition (remove the comment)
-    --------------------------------------------------------------------*/
     const XMMATRIX& Camera::GetView() const
     {
         return m_view;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-     Method:   Camera::GetConstantBuffer
-     Summary:  Returns the constant buffer
-     Returns:  ComPtr<ID3D11Buffer>&
-                 The constant buffer
-   M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+      Method:   Camera::GetConstantBuffer
+      Summary:  Returns the constant buffer
+      Returns:  ComPtr<ID3D11Buffer>&
+                  The constant buffer
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
     ComPtr<ID3D11Buffer>& Camera::GetConstantBuffer()
     {
         return m_cbChangeOnCameraMovement;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::HandleInput
       Summary:  Sets the camera state according to the given input
@@ -109,59 +99,52 @@ namespace library
       Modifies: [m_yaw, m_pitch, m_moveLeftRight, m_moveBackForward,
                  m_moveUpDown].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Camera::HandleInput definition (remove the comment)
-    --------------------------------------------------------------------*/
     void Camera::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
     {
-        if (directions.bRight == 1)
+        // Determine the amount of movement
+        if (directions.bBack)
         {
-            m_moveLeftRight += m_travelSpeed * deltaTime;
+            m_moveBackForward -= m_travelSpeed * deltaTime;
         }
-
-        if (directions.bLeft == 1)
+        if (directions.bFront)
+        {
+            m_moveBackForward += m_travelSpeed * deltaTime;
+        }
+        if (directions.bLeft)
         {
             m_moveLeftRight -= m_travelSpeed * deltaTime;
         }
-
-        if (directions.bUp == 1)
+        if (directions.bRight)
+        {
+            m_moveLeftRight += m_travelSpeed * deltaTime;
+        }
+        if (directions.bUp)
         {
             m_moveUpDown += m_travelSpeed * deltaTime;
         }
-            
-        if (directions.bDown == 1)
+        if (directions.bDown)
         {
             m_moveUpDown -= m_travelSpeed * deltaTime;
         }
 
-        if (directions.bFront == 1)
+        // Determines the rotation
+        m_yaw += static_cast<FLOAT>(mouseRelativeMovement.X * m_rotationSpeed * deltaTime);
+        static FLOAT newPitch = 0.0f;
+        newPitch = m_pitch + static_cast<FLOAT>(mouseRelativeMovement.Y * m_rotationSpeed * deltaTime);
+
+        // Limit pitch range(-pi/2, pi/2)
+        if (newPitch < -XM_PIDIV2 || newPitch > XM_PIDIV2)
         {
-            m_moveBackForward += m_travelSpeed * deltaTime;
+            // empty
         }
-
-        if (directions.bBack == 1)
+        else
         {
-            m_moveBackForward -= m_travelSpeed * deltaTime;
-        }     
-       
-        m_yaw += mouseRelativeMovement.X * m_rotationSpeed * deltaTime;
-        m_pitch += mouseRelativeMovement.Y * m_rotationSpeed * deltaTime;
-
-        if ((m_pitch < -XM_PIDIV2) || (m_pitch > XM_PIDIV2))
-        {
-            if (m_pitch < -XM_PIDIV2)
-            {
-                m_pitch = -XM_PIDIV2;
-            }
-            else if (m_pitch > -XM_PIDIV2)
-            {
-                m_pitch = XM_PIDIV2;
-            }
+            m_pitch = newPitch;
         }
 
         Update(deltaTime);
-            
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::Initialize
       Summary:  Initialize the view matrix constant buffers
@@ -172,20 +155,23 @@ namespace library
     HRESULT Camera::Initialize(_In_ ID3D11Device* device)
     {
         HRESULT hr = S_OK;
-        D3D11_BUFFER_DESC bd = {};
-        bd.ByteWidth = sizeof(CBChangeOnCameraMovement);
-        bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        bd.CPUAccessFlags = 0;
-      
+
+        D3D11_BUFFER_DESC bd =
+        {
+            .ByteWidth = sizeof(CBChangeOnCameraMovement),
+            .Usage = D3D11_USAGE_DEFAULT,
+            .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+            .CPUAccessFlags = 0u
+        };
         hr = device->CreateBuffer(&bd, nullptr, m_cbChangeOnCameraMovement.GetAddressOf());
         if (FAILED(hr))
         {
-            return hr;
+            return E_FAIL;
         }
 
         return hr;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::Update
       Summary:  Updates the camera based on its state
@@ -195,29 +181,28 @@ namespace library
                  m_cameraForward, m_eye, m_moveLeftRight,
                  m_moveBackForward, m_moveUpDown, m_up, m_view].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Camera::Update definition (remove the comment)
-    --------------------------------------------------------------------*/
     void Camera::Update(_In_ FLOAT deltaTime)
     {
-        m_rotation = XMMatrixRotationRollPitchYaw(m_pitch, m_yaw, 0);
+        m_rotation = XMMatrixRotationRollPitchYaw(m_pitch, m_yaw, 0.0f);
         m_at = XMVector3TransformCoord(DEFAULT_FORWARD, m_rotation);
         m_at = XMVector3Normalize(m_at);
 
-        XMMATRIX rotateYTempMatrix = XMMatrixRotationY(m_yaw);
-        m_cameraRight = XMVector3TransformCoord(DEFAULT_RIGHT, rotateYTempMatrix);
-        m_cameraForward = XMVector3TransformCoord(DEFAULT_FORWARD, rotateYTempMatrix);
-        m_cameraUp = XMVector3TransformCoord(m_cameraUp, rotateYTempMatrix);
+        XMMATRIX RotateYTempMatrix = XMMatrixRotationY(m_yaw);
+        m_cameraForward = XMVector3TransformCoord(DEFAULT_FORWARD, RotateYTempMatrix);
+        m_cameraRight = XMVector3TransformCoord(DEFAULT_RIGHT, RotateYTempMatrix);
+        m_cameraUp = XMVector3TransformCoord(m_cameraUp, RotateYTempMatrix);
 
-        m_eye += m_moveLeftRight * m_cameraRight;
         m_eye += m_moveBackForward * m_cameraForward;
+        m_eye += m_moveLeftRight * m_cameraRight;
         m_eye += m_moveUpDown * m_cameraUp;
 
-        m_moveLeftRight = 0.0f;
+        m_at += m_eye;
+        m_up = m_cameraUp;
+
         m_moveBackForward = 0.0f;
+        m_moveLeftRight = 0.0f;
         m_moveUpDown = 0.0f;
 
-        m_at += m_eye;
         m_view = XMMatrixLookAtLH(m_eye, m_at, m_up);
     }
 }

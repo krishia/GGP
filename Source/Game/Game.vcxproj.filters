@@ -19,6 +19,9 @@
     <Filter Include="Cube">
       <UniqueIdentifier>{96e0a21e-a762-4471-98e5-6cb47e41c4e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{84ad68ef-e824-4dff-b2a1-1b459f0c2c5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -30,7 +33,7 @@
     <ClCompile Include="Cube\MainCube.cpp">
       <Filter>Cube</Filter>
     </ClCompile>
-    <ClCompile Include="Cube\RotateCube1.cpp">
+    <ClCompile Include="Cube\RotatingCube.cpp">
       <Filter>Cube</Filter>
     </ClCompile>
     <ClCompile Include="Cube\atomic.cpp">
@@ -38,6 +41,9 @@
     </ClCompile>
     <ClCompile Include="Cube\Cube.cpp">
       <Filter>Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="Light\RotatingPointLight.cpp">
+      <Filter>Light</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -52,6 +58,9 @@
     <None Include="Shaders\Shaders.fxh">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Shaders\PhongShaders.fxh">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cube\BaseCube.h">
@@ -60,7 +69,7 @@
     <ClInclude Include="Cube\MainCube.h">
       <Filter>Cube</Filter>
     </ClInclude>
-    <ClInclude Include="Cube\RotateCube1.h">
+    <ClInclude Include="Cube\RotatingCube.h">
       <Filter>Cube</Filter>
     </ClInclude>
     <ClInclude Include="Cube\atomic.h">
@@ -68,6 +77,9 @@
     </ClInclude>
     <ClInclude Include="Cube\Cube.h">
       <Filter>Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="Light\RotatingPointLight.h">
+      <Filter>Light</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
