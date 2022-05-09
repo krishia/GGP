@@ -8,8 +8,10 @@ namespace library
 {
     /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
       Class:    PointLight
+
       Summary:  Point light that emits a light from a single point to
                 every direction
+
       Methods:  GetPosition
                   Returns the position of the light
                 GetColor

@@ -1,7 +1,6 @@
 #include "Game/Game.h"
 
-namespace library
-{
+namespace library {
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
 	  Method:   Game::Game
 
@@ -12,15 +11,12 @@ namespace library
 
 	  Modifies: [m_pszGameName, m_mainWindow, m_renderer].
 	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	/*--------------------------------------------------------------------
-	  TODO: Game::Game definition (remove the comment)
-	--------------------------------------------------------------------*/
-	Game::Game(_In_ PCWSTR pszGameName)
-	{
-		m_pszGameName = pszGameName;
-		m_mainWindow = std::make_unique<MainWindow>();
-		m_renderer = std::make_unique<Renderer>();
-	}
+	Game::Game(_In_ PCWSTR pszGameName) :
+		m_pszGameName(pszGameName),
+		m_mainWindow(std::make_unique<MainWindow>()),
+		m_renderer(std::make_unique<Renderer>())
+	{}
+
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
 	  Method:   Game::Initialize
 
@@ -37,23 +33,18 @@ namespace library
 	  Returns:  HRESULT
 				Status code
 	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	/*--------------------------------------------------------------------
-	  TODO: Game::Initialize definition (remove the comment)
-	--------------------------------------------------------------------*/
-	HRESULT Game::Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow)
-	{
-		
-		if (FAILED(m_mainWindow->Initialize(hInstance, nCmdShow, m_pszGameName)))
-		{
-			return 0;
-		}
+	HRESULT Game::Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow) {
+		HRESULT hr;
 
-		if (FAILED(m_renderer->Initialize(m_mainWindow->GetWindow())))
-		{
-			return 0;
-		}
+		hr = m_mainWindow->Initialize(hInstance, nCmdShow, L"Game Graphics Programming Lab 04: 3D Spaces and Transformations");
+		if (FAILED(hr)) return hr;
+
+		hr = m_renderer->Initialize(m_mainWindow->GetWindow());
+		if (FAILED(hr)) return hr;
+
 		return S_OK;
 	}
+
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
 	  Method:   Game::Run
 
@@ -62,46 +53,43 @@ namespace library
 	  Returns:  INT
 				  Status code to return to the operating system
 	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	/*--------------------------------------------------------------------
-	  TODO: Game::Run definition (remove the comment)
-	--------------------------------------------------------------------*/
-	INT Game::Run()
-	{
-		LARGE_INTEGER LastTime;
-		LARGE_INTEGER CurrentTime;
-		LARGE_INTEGER Frequency;
+	INT Game::Run() {
+		MSG msg = {};
+		PeekMessage(&msg, nullptr, 0U, 0U, PM_NOREMOVE);
 
-		FLOAT deltaTime;
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
 
-		QueryPerformanceFrequency(&Frequency);
-		QueryPerformanceCounter(&LastTime);
+		LARGE_INTEGER startingTicks, endingTicks;
+		LARGE_INTEGER elapsedMicroseconds = {};
 
-		MSG msg = { 0 };
+		QueryPerformanceCounter(&startingTicks);
 		while (WM_QUIT != msg.message)
 		{
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE) != 0)
 			{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
 			else
 			{
-				QueryPerformanceCounter(&CurrentTime);
-
-				deltaTime = static_cast<FLOAT>(CurrentTime.QuadPart - LastTime.QuadPart);
-				deltaTime /= static_cast<FLOAT>(Frequency.QuadPart);
-				LastTime = CurrentTime;
-
+				QueryPerformanceCounter(&endingTicks);
+				elapsedMicroseconds.QuadPart = endingTicks.QuadPart - startingTicks.QuadPart;
+				elapsedMicroseconds.QuadPart *= 1000000;
+				elapsedMicroseconds.QuadPart /= frequency.QuadPart;
+				float deltaTime = (float)elapsedMicroseconds.QuadPart / 1000000.0f;
+				// Update game
 				m_renderer->HandleInput(m_mainWindow->GetDirections(), m_mainWindow->GetMouseRelativeMovement(), deltaTime);
 				m_mainWindow->ResetMouseMovement();
-
 				m_renderer->Update(deltaTime);
+				QueryPerformanceCounter(&startingTicks);
 				m_renderer->Render();
 			}
 		}
 
 		return static_cast<INT>(msg.wParam);
 	}
+
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
 	  Method:   Game::GetGameName
 
@@ -110,35 +98,31 @@ namespace library
 	  Returns:  PCWSTR
 				  Name of the game
 	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	/*--------------------------------------------------------------------
-	  TODO: Game::GetGameName definition (remove the comment)
-	--------------------------------------------------------------------*/
-	PCWSTR Game::GetGameName() const
-	{
+	PCWSTR Game::GetGameName() const {
 		return m_pszGameName;
 	}
+
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	Method:   Game::GetWindow
-	Summary:  Returns the main window
-	Returns:  std::unique_ptr<MainWindow>&
-				The main window
-  M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-  /*--------------------------------------------------------------------
-	TODO: Game::GetWindow definition (remove the comment)
-  --------------------------------------------------------------------*/
-	std::unique_ptr<MainWindow>& Game::GetWindow() 
+	  Method:   Game::GetWindow
+
+	  Summary:  Returns the main window
+
+	  Returns:  std::unique_ptr<MainWindow>&
+				  The main window
+	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+	std::unique_ptr<MainWindow>& Game::GetWindow()
 	{
 		return m_mainWindow;
 	}
-  /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	Method:   Game::GetRenderer
-	Summary:  Returns the renderer
-	Returns:  std::unique_ptr<Renderer>&
-				The renderer
-  M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-  /*--------------------------------------------------------------------
-	TODO: Game::GetRenderer definition (remove the comment)
-  --------------------------------------------------------------------*/
+
+	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+	  Method:   Game::GetRenderer
+
+	  Summary:  Returns the renderer
+
+	  Returns:  std::unique_ptr<Renderer>&
+				  The renderer
+	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
 	std::unique_ptr<Renderer>& Game::GetRenderer()
 	{
 		return m_renderer;

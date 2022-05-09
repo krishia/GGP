@@ -1,9 +1,11 @@
-﻿#pragma once
-/*+===================================================================
+﻿/*+===================================================================
   File:      ROTATINGPOINTLIGHT.H
+
   Summary:   RotatingPointLight header file contains
              declarations of the rotating point light.
+
   Classes: RotatingPointLight
+
   © 2022 Kyung Hee University
 ===================================================================+*/
 #pragma once
@@ -14,7 +16,9 @@
 
 /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
   Class:    RotatingPointLight
+
   Summary:  Point light that rotates around the y axis
+
   Methods:  Update
               Rotates every frame by y-axis
             RotatingPointLight
