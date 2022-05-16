@@ -8,7 +8,6 @@ RotatingCube::RotatingCube(const XMFLOAT4& outputColor)
 
 void RotatingCube::Update(_In_ FLOAT deltaTime)
 {
-    // Rotate cube around the origin
     static FLOAT t = 0.0f;
     t += deltaTime;
 

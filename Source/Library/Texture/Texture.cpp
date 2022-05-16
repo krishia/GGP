@@ -1,5 +1,4 @@
 #include "Texture.h"
-
 #include "Texture/WICTextureLoader.h"
 
 namespace library
@@ -16,7 +15,7 @@ namespace library
         , m_textureRV(nullptr)
         , m_samplerLinear(nullptr)
     {
-        
+
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -28,9 +27,6 @@ namespace library
                   The Direct3D context to set buffers
       Modifies: [m_textureRV, m_samplerLinear].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Texture::Initialize definition (remove the comment)
-    --------------------------------------------------------------------*/
     HRESULT Texture::Initialize(_In_ ID3D11Device* pDevice, _In_ ID3D11DeviceContext* pImmediateContext)
     {
         HRESULT hr = S_OK;
@@ -51,7 +47,6 @@ namespace library
             .MinLOD = 0.0f,
             .MaxLOD = D3D11_FLOAT32_MAX,
         };
-
         hr = pDevice->CreateSamplerState(&sampDesc, m_samplerLinear.GetAddressOf());
         if (FAILED(hr))
         {
@@ -60,6 +55,7 @@ namespace library
 
         return hr;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Texture::GetTextureResourceView
       Summary:  Constructor

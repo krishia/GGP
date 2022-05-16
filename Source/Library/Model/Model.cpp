@@ -1,7 +1,7 @@
 #include "Model/Model.h"
 
 #include "assimp/Importer.hpp"	// C++ importer interface
-#include "assimp/scene.h"		    // output data structure
+#include "assimp/scene.h"		// output data structure
 #include "assimp/postprocess.h"	// post processing flags
 
 namespace library
@@ -13,18 +13,16 @@ namespace library
                   Path to the model to load
       Modifies: [m_filePath, m_aVertices, m_aIndices].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Model::Model definition (remove the comment)
-    --------------------------------------------------------------------*/
-    Model::Model(_In_ const std::filesystem::path& filePath):
-        Renderable(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)),
-        m_filePath(filePath),
-        m_aVertices(std::vector<SimpleVertex>()),
-        m_aIndices(std::vector<WORD>()),
-        m_padding()
+    Model::Model(_In_ const std::filesystem::path& filePath)
+        : Renderable(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f))
+        , m_filePath(filePath)
+        , m_aVertices(std::vector<SimpleVertex>())
+        , m_aIndices(std::vector<WORD>())
+        , m_padding()
     {
-        
+      
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Model::Initialize
       Summary:  Constructor
@@ -40,8 +38,6 @@ namespace library
     {
         HRESULT hr = S_OK;
 
-        // Create the buffers for the vertices attributes
-
         Assimp::Importer importer;
 
         const aiScene* pScene = importer.ReadFile(
@@ -56,11 +52,6 @@ namespace library
         else
         {
             hr = E_FAIL;
-            OutputDebugString(L"Error parsing ");
-            OutputDebugString(m_filePath.c_str());
-            OutputDebugString(L": ");
-            OutputDebugStringA(importer.GetErrorString());
-            OutputDebugString(L"\n");
         }
 
         return hr;
@@ -111,9 +102,6 @@ namespace library
                   Pointer to an assimp scene object that contains the
                   mesh information
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Model::countVerticesAndIndices definition (remove the comment)
-    --------------------------------------------------------------------*/
     void Model::countVerticesAndIndices(_Inout_ UINT& uOutNumVertices, _Inout_ UINT& uOutNumIndices, _In_ const aiScene* pScene)
     {
         m_aMeshes.resize(pScene->mNumMeshes);
@@ -121,17 +109,21 @@ namespace library
 
         UINT uNumVertices = 0u;
         UINT uNumIndices = 0u;
-        for (UINT i = 0u; i < m_aMeshes.size(); ++i)
+        for (UINT i = 0u; i < pScene->mNumMeshes; ++i)
         {
-            m_aMeshes[i].uMaterialIndex = pScene->mMeshes[i]->mMaterialIndex;
             m_aMeshes[i].uNumIndices = pScene->mMeshes[i]->mNumFaces * 3u;
-            m_aMeshes[i].uBaseVertex = uOutNumVertices;
-            m_aMeshes[i].uBaseIndex = uOutNumIndices;
+            m_aMeshes[i].uBaseVertex = uNumVertices;
+            m_aMeshes[i].uBaseIndex = uNumIndices;
+            m_aMeshes[i].uMaterialIndex = pScene->mMeshes[i]->mMaterialIndex;
 
-            uOutNumVertices += pScene->mMeshes[i]->mNumVertices;
-            uOutNumIndices += m_aMeshes[i].uNumIndices;
+            uNumVertices += pScene->mMeshes[i]->mNumVertices;
+            uNumIndices += m_aMeshes[i].uNumIndices;
         }
+
+        uOutNumVertices = uNumVertices;
+        uOutNumIndices = uNumIndices;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Model::getVertices
       Summary:  Returns the vertices data
@@ -170,7 +162,6 @@ namespace library
         }
     }
 
-
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Model::initFromScene
       Summary:  Initialize all meshes in a given assimp scene
@@ -186,9 +177,6 @@ namespace library
       Returns:  HRESULT
                   Status code
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Model::initFromScene definition (remove the comment)
-    --------------------------------------------------------------------*/
     HRESULT Model::initFromScene(
         _In_ ID3D11Device* pDevice,
         _In_ ID3D11DeviceContext* pImmediateContext,
@@ -198,27 +186,18 @@ namespace library
     {
         HRESULT hr = S_OK;
 
-        UINT uOutNumVertices = 0u;
-        UINT uOutNumIndices = 0u;
+        UINT uNumVertices = 0u;
+        UINT uNumIndices = 0u;
 
-        countVerticesAndIndices(uOutNumVertices, uOutNumIndices, pScene);
-        reserveSpace(uOutNumVertices, uOutNumIndices);
+        countVerticesAndIndices(uNumVertices, uNumIndices, pScene);
+        reserveSpace(uNumVertices, uNumIndices);
         initAllMeshes(pScene);
-
         hr = initMaterials(pDevice, pImmediateContext, pScene, filePath);
-        if (FAILED(hr))
-        {
-            return hr;
-        }
-
         hr = initialize(pDevice, pImmediateContext);
-        if (FAILED(hr))
-        {
-            return hr;
-        }
 
         return hr;
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Model::initMaterials
       Summary:  Initialize all materials in a given assimp scene
@@ -243,20 +222,21 @@ namespace library
     {
         HRESULT hr = S_OK;
 
-        // Extract the directory part from the file name
         std::filesystem::path parentDirectory = filePath.parent_path();
 
-        // Initialize the materials
         for (UINT i = 0u; i < pScene->mNumMaterials; ++i)
         {
             const aiMaterial* pMaterial = pScene->mMaterials[i];
 
-            loadTextures(pDevice, pImmediateContext, parentDirectory, pMaterial, i);
+            hr = loadTextures(pDevice, pImmediateContext, parentDirectory, pMaterial, i);
+            if (FAILED(hr))
+            {
+                return hr;
+            }
         }
 
         return hr;
     }
-
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Model::initSingleMesh
@@ -264,9 +244,6 @@ namespace library
       Args:     const aiMesh* pMesh
                   Point to an assimp mesh object
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Model::initSingleMesh definition (remove the comment)
-    --------------------------------------------------------------------*/
     void Model::initSingleMesh(_In_ const aiMesh* pMesh)
     {
         const aiVector3D zero3d(0.0f, 0.0f, 0.0f);
@@ -275,16 +252,16 @@ namespace library
         {
             const aiVector3D& position = pMesh->mVertices[i];
             const aiVector3D& normal = pMesh->mNormals[i];
-            const aiVector3D& texCoord =pMesh->HasTextureCoords(0u) ? pMesh->mTextureCoords[0][i] : zero3d;
+            const aiVector3D& texCoord = pMesh->HasTextureCoords(0u) ? pMesh->mTextureCoords[0][i] : zero3d;
 
-            m_aVertices.push_back(
-                SimpleVertex
-                {
-                    .Position = XMFLOAT3(position.x, position.y, position.z),
-                    .TexCoord = XMFLOAT2(texCoord.x, texCoord.y),
-                    .Normal = XMFLOAT3(normal.x, normal.y, normal.z)
-                }
-            );
+            SimpleVertex vertex =
+            {
+                .Position = XMFLOAT3(position.x, position.y, position.z),
+                .TexCoord = XMFLOAT2(texCoord.x, texCoord.y),
+                .Normal = XMFLOAT3(normal.x, normal.y, normal.z)
+            };
+
+            m_aVertices.push_back(vertex);
         }
 
         for (UINT i = 0u; i < pMesh->mNumFaces; ++i)
@@ -292,11 +269,19 @@ namespace library
             const aiFace& face = pMesh->mFaces[i];
             assert(face.mNumIndices == 3u);
 
-            m_aIndices.push_back(static_cast<WORD>(face.mIndices[0]));
-            m_aIndices.push_back(static_cast<WORD>(face.mIndices[1]));
-            m_aIndices.push_back(static_cast<WORD>(face.mIndices[2]));
+            WORD aIndices[3] =
+            {
+                static_cast<WORD>(face.mIndices[0]),
+                static_cast<WORD>(face.mIndices[1]),
+                static_cast<WORD>(face.mIndices[2]),
+            };
+
+            m_aIndices.push_back(aIndices[0]);
+            m_aIndices.push_back(aIndices[1]);
+            m_aIndices.push_back(aIndices[2]);
         }
     }
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Model::loadDiffuseTexture
       Summary:  Load a diffuse texture from given path
@@ -342,16 +327,8 @@ namespace library
                 hr = m_aMaterials[uIndex].pDiffuse->Initialize(pDevice, pImmediateContext);
                 if (FAILED(hr))
                 {
-                    OutputDebugString(L"Error loading diffuse texture \"");
-                    OutputDebugString(fullPath.c_str());
-                    OutputDebugString(L"\"\n");
-
                     return hr;
                 }
-
-                OutputDebugString(L"Loaded diffuse texture \"");
-                OutputDebugString(fullPath.c_str());
-                OutputDebugString(L"\"\n");
             }
         }
 
@@ -403,16 +380,8 @@ namespace library
                 hr = m_aMaterials[uIndex].pSpecular->Initialize(pDevice, pImmediateContext);
                 if (FAILED(hr))
                 {
-                    OutputDebugString(L"Error loading specular texture \"");
-                    OutputDebugString(fullPath.c_str());
-                    OutputDebugString(L"\"\n");
-
                     return hr;
                 }
-
-                OutputDebugString(L"Loaded specular texture \"");
-                OutputDebugString(fullPath.c_str());
-                OutputDebugString(L"\"\n");
             }
         }
 
@@ -464,9 +433,6 @@ namespace library
                 UINT uNumIndices
                   Number of indices
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    /*--------------------------------------------------------------------
-      TODO: Model::reserveSpace definition (remove the comment)
-    --------------------------------------------------------------------*/
     void Model::reserveSpace(_In_ UINT uNumVertices, _In_ UINT uNumIndices)
     {
         m_aVertices.reserve(uNumVertices);

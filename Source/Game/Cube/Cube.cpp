@@ -26,5 +26,4 @@ M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
 void Cube::Update(_In_ FLOAT deltaTime)
 {
 	UNREFERENCED_PARAMETER(deltaTime);
-	// Does nothing
 }

@@ -2,238 +2,219 @@
 
 namespace library
 {
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-		Method:   MainWindow::MainWindow
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+        Method:   MainWindow::MainWindow
+        Summary:  Constructor
+        Modifies: [m_directions, m_mouseRelativeMovement].
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    MainWindow::MainWindow()
+        : m_directions(DirectionsInput())
+        , m_mouseRelativeMovement(MouseRelativeMovement())
+    {
+   
+    }
 
-		Summary:  Constructor
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   MainWindow::Initialize
+      Summary:  Initializes main window
+      Args:     HINSTANCE hInstance
+                  Handle to the instance
+                INT nCmdShow
+                  Is a flag that says whether the main application window
+                  will be minimized, maximized, or shown normally
+                PCWSTR pszWindowName
+                  The window name
+      Returns:  HRESULT
+                  Status code
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    HRESULT MainWindow::Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow, _In_ PCWSTR pszWindowName)
+    {
+        return initialize(hInstance, nCmdShow, pszWindowName, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
+    }
 
-		Modifies: [m_directions, m_mouseRelativeMovement].
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	MainWindow::MainWindow() :
-		m_directions(),
-		m_mouseRelativeMovement()
-	{}
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   MainWindow::GetWindowClassName
+      Summary:  Returns the name of the window class
+      Returns:  PCWSTR
+                  Name of the window class
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    PCWSTR MainWindow::GetWindowClassName() const
+    {
+        return m_pszWindowName;
+    }
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   MainWindow::Initialize
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   MainWindow::HandleMessage
+      Summary:  Handles the messages
+      Args:     UINT uMessage
+                  Message code
+                WPARAM wParam
+                  Additional data the pertains to the message
+                LPARAM lParam
+                  Additional data the pertains to the message
+      Returns:  LRESULT
+                  Integer value that your program returns to Windows
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    LRESULT MainWindow::HandleMessage(_In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
+    {
+        PAINTSTRUCT ps;
+        HDC hdc;
 
-	  Summary:  Initializes main window
+        RAWINPUTDEVICE Rid[1];
+        Rid[0].usUsagePage = static_cast<USHORT>(0x01);
+        Rid[0].usUsage = static_cast<USHORT>(0x02);
+        Rid[0].dwFlags = RIDEV_INPUTSINK;
+        Rid[0].hwndTarget = m_hWnd;
+        RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
 
-	  Args:     HINSTANCE hInstance
-				  Handle to the instance
-				INT nCmdShow
-					Is a flag that says whether the main application window
-					will be minimized, maximized, or shown normally
-				PCWSTR pszWindowName
-					The window name
+        switch (uMsg)
+        {
+        case WM_INPUT:
+        {
+            UINT dwSize = sizeof(RAWINPUT);
+            static BYTE lpb[sizeof(RAWINPUT)];
 
-	  Returns:  HRESULT
-				  Status code
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	HRESULT MainWindow::Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow, _In_ PCWSTR pszWindowName) {
-		HRESULT hr;
-		hr = initialize(hInstance, nCmdShow, pszWindowName, WS_OVERLAPPEDWINDOW);
-		if (FAILED(hr)) return hr;
+            GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
 
-		static bool didInitRawInput = false;
-		if (!didInitRawInput)
-		{
-			RAWINPUTDEVICE rid =
-			{
-				.usUsagePage = 0x01,
-				.usUsage = 0x02,
-				.dwFlags = 0,
-				.hwndTarget = nullptr
-			};
+            RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(lpb);
 
-			if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) return E_FAIL;
-			didInitRawInput = true;
-		}
+            if (raw->header.dwType == RIM_TYPEMOUSE)
+            {
+                m_mouseRelativeMovement.X = raw->data.mouse.lLastX;
+                m_mouseRelativeMovement.Y = raw->data.mouse.lLastY;
+            }
+            break;
+        }
 
-		RECT rc;
-		POINT p1, p2;
+        case WM_KEYDOWN:
+        {
+            switch (wParam)
+            {
+            case 0x57:    
+                m_directions.bFront = TRUE;
+                break;
 
-		if (!GetClientRect(m_hWnd, &rc))
-			return HRESULT_FROM_WIN32(GetLastError());
-		p1.x = rc.left;
-		p1.y = rc.top;
-		p2.x = rc.right;
-		p2.y = rc.bottom;
+            case 0x41:    
+                m_directions.bLeft = TRUE;
+                break;
 
-		if (!ClientToScreen(m_hWnd, &p1)) return E_FAIL;
-		if (!ClientToScreen(m_hWnd, &p2)) return E_FAIL;
+            case 0x53:    
+                m_directions.bBack = TRUE;
+                break;
 
-		rc.left = p1.x;
-		rc.top = p1.y;
-		rc.right = p2.x;
-		rc.bottom = p2.y;
+            case 0x44:     
+                m_directions.bRight = TRUE;
+                break;
 
-		if (!ClipCursor(&rc))
-			return HRESULT_FROM_WIN32(GetLastError());
+            case VK_SPACE: 
+                m_directions.bUp = TRUE;
+                break;
 
-		return S_OK;
-	}
+            case VK_SHIFT:  
+                m_directions.bDown = TRUE;
+                break;
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   MainWindow::GetWindowClassName
+            default:
+                break;
+            }
+            break;
+        }
 
-	  Summary:  Returns the name of the window class
+        case WM_KEYUP:
+        {
+            switch (wParam)
+            {
+            case 0x57:   
+                m_directions.bFront = FALSE;
+                break;
 
-	  Returns:  PCWSTR
-				  Name of the window class
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	PCWSTR MainWindow::GetWindowClassName() const
-	{
-		return L"Main Window";
-	}
+            case 0x41:    
+                m_directions.bLeft = FALSE;
+                break;
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   MainWindow::HandleMessage
+            case 0x53:     
+                m_directions.bBack = FALSE;
+                break;
 
-	  Summary:  Handles the messages
+            case 0x44:    
+                m_directions.bRight = FALSE;
+                break;
 
-	  Args:     UINT uMessage
-				  Message code
-				WPARAM wParam
-					Additional data the pertains to the message
-				LPARAM lParam
-					Additional data the pertains to the message
+            case VK_SPACE:
+                m_directions.bUp = FALSE;
+                break;
 
-	  Returns:  LRESULT
-				  Integer value that your program returns to Windows
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	LRESULT MainWindow::HandleMessage(_In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
-	{
-		switch (uMsg)
-		{
-		case WM_CLOSE:
-		{
-			HMENU hMenu;
-			hMenu = GetMenu(m_hWnd);
-			if (hMenu != nullptr)
-			{
-				DestroyMenu(hMenu);
-			}
-			DestroyWindow(m_hWnd);
-			UnregisterClass(
-				GetWindowClassName(),
-				m_hInstance
-			);
-			return 0;
-		}
-		case WM_INPUT:
-		{
-			UINT dataSize = 0;
-			GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, nullptr, &dataSize, sizeof(RAWINPUTHEADER));
+            case VK_SHIFT: 
+                m_directions.bDown = FALSE;
+                break;
 
-			if (dataSize <= 0) return DefWindowProc(m_hWnd, uMsg, wParam, lParam);
+            default:
+                break;
+            }
+            break;
+        }
 
-			std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>(dataSize);
-			if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, rawData.get(), &dataSize, sizeof(RAWINPUTHEADER)) == dataSize)
-			{
-				RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawData.get());
-				if (raw->header.dwType == RIM_TYPEMOUSE)
-				{
-					m_mouseRelativeMovement.X += raw->data.mouse.lLastX;
-					m_mouseRelativeMovement.Y += raw->data.mouse.lLastY;
-				}
-			}
-			return DefWindowProc(m_hWnd, uMsg, wParam, lParam);
-		}
-		case WM_KEYDOWN:
-		{
-			switch (wParam)
-			{
-			case 0x57: // W
-				m_directions.bFront = true;
-				break;
-			case 0x41: // A
-				m_directions.bLeft = true;
-				break;
-			case 0x53: // S
-				m_directions.bBack = true;
-				break;
-			case 0x44: // D
-				m_directions.bRight = true;
-				break;
-			case VK_SPACE:
-				m_directions.bUp = true;
-				break;
-			case VK_SHIFT:
-				m_directions.bDown = true;
-				break;
-			}
-			return 0;
-		}
-		case WM_KEYUP:
-		{
-			switch (wParam)
-			{
-			case 0x57: // W
-				m_directions.bFront = false;
-				break;
-			case 0x41: // A
-				m_directions.bLeft = false;
-				break;
-			case 0x53: // S
-				m_directions.bBack = false;
-				break;
-			case 0x44: // D
-				m_directions.bRight = false;
-				break;
-			case VK_SPACE:
-				m_directions.bUp = false;
-				break;
-			case VK_SHIFT:
-				m_directions.bDown = false;
-				break;
-			}
-			return 0;
-		}
-		case WM_DESTROY:
-		{
-			PostQuitMessage(0);
-			return 0;
-		}
-		default:
-			return DefWindowProc(m_hWnd, uMsg, wParam, lParam);
-		}
-	}
+        case WM_PAINT:
+        {
+            hdc = BeginPaint(m_hWnd, &ps);
+            EndPaint(m_hWnd, &ps);
+            break;
+        }
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   MainWindow::GetDirections
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
+            break;
+        }
 
-	  Summary:  Returns the keyboard direction input
+        case WM_CLOSE:
+        {
 
-	  Returns:  const DirectionsInput&
-				  Keyboard direction input
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	const DirectionsInput& MainWindow::GetDirections() const
-	{
-		return m_directions;
-	}
+            DestroyWindow(m_hWnd);
+            
+            return S_OK;
+        }
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   MainWindow::GetMouseRelativeMovement
+        default:
+            return DefWindowProc(m_hWnd, uMsg, wParam, lParam);
+        }
 
-	  Summary:  Returns the mouse relative movement
+        return S_OK;
+    }
 
-	  Returns:  const MouseRelativeMovement&
-				  Mouse relative movement
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	const MouseRelativeMovement& MainWindow::GetMouseRelativeMovement() const
-	{
-		return m_mouseRelativeMovement;
-	}
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   MainWindow::GetDirections
+      Summary:  Returns the keyboard direction input
+      Returns:  const DirectionsInput&
+                  Keyboard direction input
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    const DirectionsInput& MainWindow::GetDirections() const
+    {
+        return m_directions;
+    }
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   MainWindow::ResetMouseMovement
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   MainWindow::GetMouseRelativeMovement
+      Summary:  Returns the mouse relative movement
+      Returns:  const MouseRelativeMovement&
+                  Mouse relative movement
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    const MouseRelativeMovement& MainWindow::GetMouseRelativeMovement() const
+    {
+        return m_mouseRelativeMovement;
+    }
 
-	  Summary:  Reset the mouse relative movement to zero
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	void MainWindow::ResetMouseMovement()
-	{
-		m_mouseRelativeMovement = {};
-	}
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   MainWindow::ResetMouseMovement
+      Summary:  Reset the mouse relative movement to zero
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    void MainWindow::ResetMouseMovement()
+    {
+        m_mouseRelativeMovement =
+        {
+            .X = 0l,
+            .Y = 0l
+        };
+    }
 }
 
