@@ -2,17 +2,12 @@
 
 #include "Common.h"
 
-#ifndef NUM_LIGHTS
-#define NUM_LIGHTS (2)
-#endif
-
 namespace library
 {
-    /*S+S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S
-      Struct:   SimpleVertex
-      Summary:  Simple vertex structure containing a single field of the
-                type XMFLOAT3
-    S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S-S*/
+#define NUM_LIGHTS (2)
+#define MAX_NUM_BONES (256)
+#define MAX_NUM_BONES_PER_VERTEX (16)
+
     struct SimpleVertex
     {
         XMFLOAT3 Position;
@@ -20,30 +15,34 @@ namespace library
         XMFLOAT3 Normal;
     };
 
-    /*S+S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S
-      Struct:   InstanceData
-      Summary:  Instance data containing a per instance transformation
-                matrix
-    S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S-S*/
     struct InstanceData
     {
         XMMATRIX Transformation;
     };
 
-    /*S+S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S
-      Struct:   CBChangeOnCameraMovement
-      Summary:  Constant buffer containing view matrix
-    S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S-S*/
-    struct CBChangeOnCameraMovement
+    struct AnimationData
     {
-        XMMATRIX View;
-        XMFLOAT4 CameraPosition;    // This is for shading. You may comment this out until then.
+        XMUINT4 aBoneIndices;
+        XMFLOAT4 aBoneWeights;
     };
 
     /*S+S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S
-      Struct:   CBChangeOnResize
-      Summary:  Constant buffer containing projection matrix
+      Struct:   NormalData
+      Summary:  NormalData structure containing tangent space vetors
+                of the vertex
     S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S-S*/
+    struct NormalData
+    {
+        XMFLOAT3 Tangent;
+        XMFLOAT3 Bitangent;
+    };
+
+    struct CBChangeOnCameraMovement
+    {
+        XMMATRIX View;
+        XMFLOAT4 CameraPosition;
+    };
+
     struct CBChangeOnResize
     {
         XMMATRIX Projection;
@@ -57,12 +56,14 @@ namespace library
     {
         XMMATRIX World;
         XMFLOAT4 OutputColor;
+        BOOL HasNormalMap;
     };
 
-    /*S+S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S+++S
-      Struct:   CBLights
-      Summary:  Constant buffer containing lights' information
-    S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S---S-S*/
+    struct CBSkinning
+    {
+        XMMATRIX BoneTransforms[MAX_NUM_BONES];
+    };
+
     struct CBLights
     {
         XMFLOAT4 LightPositions[NUM_LIGHTS];

@@ -4,7 +4,7 @@
              class used for the lab samples of Game Graphics
              Programming course.
   Classes: Renderer
-  © 2022 Kyung Hee University
+  ?2022 Kyung Hee University
 ===================================================================+*/
 #pragma once
 
@@ -22,6 +22,7 @@
 
 namespace library
 {
+
     /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
       Class:    Renderer
       Summary:  Renderer initializes Direct3D, and renders renderable
@@ -30,24 +31,10 @@ namespace library
                   Creates Direct3D device and swap chain
                 AddRenderable
                   Add a renderable object and initialize the object
-                AddVertexShader
-                  Add the vertex shader into the renderer
-                AddPixelShader
-                  Add the pixel shader into the renderer
-                AddScene
-                  Add a scene
-                SetMainScene
-                  Set the main scene
-                HandleInput
-                  Handles the keyboard / mouse input
                 Update
                   Update the renderables each frame
                 Render
                   Renders the frame
-                SetVertexShaderOfRenderable
-                  Sets the vertex shader for a renderable
-                SetPixelShaderOfRenderable
-                  Sets the pixel shader for a renderable
                 GetDriverType
                   Returns the Direct3D driver type
                 Renderer
@@ -66,24 +53,18 @@ namespace library
         ~Renderer() = default;
 
         HRESULT Initialize(_In_ HWND hWnd);
-        HRESULT AddRenderable(_In_ PCWSTR pszRenderableName, _In_ const std::shared_ptr<Renderable>& renderable);
-        HRESULT AddPointLight(_In_ size_t index, _In_ const std::shared_ptr<PointLight>& pointLight);
-        HRESULT AddVertexShader(_In_ PCWSTR pszVertexShaderName, _In_ const std::shared_ptr<VertexShader>& vertexShader);
-        HRESULT AddPixelShader(_In_ PCWSTR pszPixelShaderName, _In_ const std::shared_ptr<PixelShader>& pixelShader);
 
-        HRESULT AddScene(_In_ PCWSTR pszSceneName, const std::filesystem::path& sceneFilePath);
+        HRESULT AddScene(_In_ PCWSTR pszSceneName, _In_ const std::shared_ptr<Scene>& scene);
+        std::shared_ptr<Scene> GetSceneOrNull(_In_ PCWSTR pszSceneName);
         HRESULT SetMainScene(_In_ PCWSTR pszSceneName);
 
         void HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime);
         void Update(_In_ FLOAT deltaTime);
         void Render();
 
-        HRESULT SetVertexShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszVertexShaderName);
-        HRESULT SetPixelShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszPixelShaderName);
-        HRESULT SetVertexShaderOfScene(_In_ PCWSTR pszSceneName, _In_ PCWSTR pszVertexShaderName);
-        HRESULT SetPixelShaderOfScene(_In_ PCWSTR pszSceneName, _In_ PCWSTR pszPixelShaderName);
-
         D3D_DRIVER_TYPE GetDriverType() const;
+
+        void Debug();
 
     private:
         D3D_DRIVER_TYPE m_driverType;
@@ -100,13 +81,11 @@ namespace library
         ComPtr<ID3D11Buffer> m_cbChangeOnResize;
         ComPtr<ID3D11Buffer> m_cbLights;
         PCWSTR m_pszMainSceneName;
+        BYTE m_padding[8];
         Camera m_camera;
         XMMATRIX m_projection;
 
-        std::unordered_map<std::wstring, std::shared_ptr<Renderable>> m_renderables;
-        std::shared_ptr<PointLight> m_aPointLights[NUM_LIGHTS];
-        std::unordered_map<std::wstring, std::shared_ptr<VertexShader>> m_vertexShaders;
-        std::unordered_map<std::wstring, std::shared_ptr<PixelShader>> m_pixelShaders;
         std::unordered_map<std::wstring, std::shared_ptr<Scene>> m_scenes;
+        std::shared_ptr<Texture> m_invalidTexture;
     };
 }

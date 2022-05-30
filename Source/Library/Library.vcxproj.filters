@@ -34,7 +34,8 @@
     <Filter Include="Light">
       <UniqueIdentifier>{fd91df16-2068-42cc-9dca-b05fdf301575}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Model">
+    <Filter Include="Mode
+			>
       <UniqueIdentifier>{1d95966f-8543-423e-ad5c-ce0afda3312a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Scene">
@@ -105,6 +106,9 @@
     <ClInclude Include="Renderer\InstanceRenderable.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Shader\SkinningVertexShader.h">
+      <Filter>shader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game\Game.cpp">
@@ -157,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="Renderer\InstanceRenderable.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader\SkinningVertexShader.cpp">
+      <Filter>shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

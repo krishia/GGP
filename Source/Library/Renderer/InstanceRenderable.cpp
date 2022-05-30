@@ -14,7 +14,7 @@ namespace library
         , m_aInstanceData(std::vector<InstanceData>())
         , m_padding()
     {
-        
+
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -32,7 +32,7 @@ namespace library
         , m_aInstanceData(std::move(aInstanceData))
         , m_padding()
     {
-       
+
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -42,7 +42,7 @@ namespace library
                   Instance data
       Modifies: [m_aInstanceData].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-    void InstancedRenderable::SetInstanceData(std::vector<InstanceData>&& aInstanceData)
+    void InstancedRenderable::SetInstanceData(_In_ std::vector<InstanceData>&& aInstanceData)
     {
         m_aInstanceData = std::move(aInstanceData);
     }
@@ -100,6 +100,7 @@ namespace library
         hr = pDevice->CreateBuffer(&iBufferDesc, &iInitData, &m_instanceBuffer);
         if (FAILED(hr))
         {
+
             return hr;
         }
 

@@ -13,7 +13,7 @@ namespace library
     Voxel::Voxel(_In_ const XMFLOAT4& outputColor)
         : InstancedRenderable(outputColor)
     {
-   
+        // empty
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -42,12 +42,33 @@ namespace library
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
     HRESULT Voxel::Initialize(_In_ ID3D11Device* pDevice, _In_ ID3D11DeviceContext* pImmediateContext)
     {
-        HRESULT hr = S_OK;
+        BasicMeshEntry basicMeshEntry;
+        basicMeshEntry.uNumIndices = NUM_INDICES;
 
-        hr = initialize(pDevice, pImmediateContext);
+        m_aMeshes.push_back(basicMeshEntry);
+
+        HRESULT hr = initialize(pDevice, pImmediateContext);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
         hr = initializeInstance(pDevice);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
 
-        return hr;
+        if (HasTexture() > 0)
+        {
+            hr = SetMaterialOfMesh(0, 0);
+            if (FAILED(hr))
+            {
+                return hr;
+            }
+        }
+
+        return S_OK;
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -64,7 +85,6 @@ namespace library
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Voxel::GetNumVertices
       Summary:  Returns the number of vertices in the voxel
-
       Returns:  UINT
                   Number of vertices
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
@@ -76,7 +96,6 @@ namespace library
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Voxel::GetNumIndices
       Summary:  Returns the number of indices in the voxel
-
       Returns:  UINT
                   Number of indices
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
@@ -88,7 +107,6 @@ namespace library
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Voxel::getVertices
       Summary:  Returns the pointer to the vertices data
-
       Returns:  const library::SimpleVertex*
                   Pointer to the vertices data
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
@@ -100,7 +118,6 @@ namespace library
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Voxel::getIndices
       Summary:  Returns the pointer to the indices data
-
       Returns:  const WORD*
                   Pointer to the indices data
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
